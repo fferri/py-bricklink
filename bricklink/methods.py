@@ -17,7 +17,7 @@ class Method:
 
 
 class Orders(Method):
-    def getOrders(self, direction='in', status='', filed=False):
+    def getOrders(self, direction='in', status=None, filed=False):
         return self.client.get('/orders', {'direction': direction, 'status': status, 'filed': filed})
 
     def getOrder(self, order_id):
@@ -72,13 +72,13 @@ class Catalog(Method):
     def getItemImage(self, type, no, color_id):
         return self.client.get('/items/%s/%s/images/%d' % (type, no, color_id))
 
-    def getSupersets(self, type, no, color_id=''):
+    def getSupersets(self, type, no, color_id=None):
         return self.client.get('/items/%s/%s/supersets' % (type, no), {'color_id': color_id})
 
-    def getSubsets(self, type, no, color_id='', box=False, instruction=False, break_minifigs=False, break_subsets=False):
+    def getSubsets(self, type, no, color_id=None, box=False, instruction=False, break_minifigs=False, break_subsets=False):
         return self.client.get('/items/%s/%s/subsets' % (type, no), {'color_id': color_id, 'box': box, 'instruction': instruction, 'break_minifigs': break_minifigs, 'break_subsets': break_subsets})
 
-    def getPriceGuide(self, type, no, color_id='', guide_type='stock', new_or_used='N', country_code='', region='', currency_code='', vat='N'):
+    def getPriceGuide(self, type, no, color_id=None, guide_type='stock', new_or_used='N', country_code=None, region=None, currency_code=None, vat='N'):
         return self.client.get('/items/%s/%s/price' % (type, no), {'color_id': color_id, 'guide_type': guide_type, 'new_or_used': new_or_used, 'country_code': country_code, 'region': region, 'currency_code': currency_code, 'vat': vat})
 
     def getKnownColors(self, type, no):

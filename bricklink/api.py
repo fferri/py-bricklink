@@ -83,7 +83,7 @@ class ApiClient:
 
     def request(self, method, relativeURI, params):
         # strip None values from params:
-        #params = {k: v for k, v in params.items() if v is not None}
+        params = {k: v for k, v in params.items() if v is not None}
 
         if not relativeURI.startswith('/'):
             self.trace(4, 'request: added missing leading "/"')
@@ -106,6 +106,7 @@ class ApiClient:
         auth_str = 'Authorization={%s}' % '%2C'.join(['"%s"%%3A"%s"' % (k, quote(oauth_params[k], '')) for k in kk])
 
         full_url = absoluteURI + '?' + '&'.join(['%s=%s' % (k, quote(str(params[k]).encode('utf-8'), '')) for k in params.keys()] + [auth_str])
+        self.trace(4, 'request: params:', params)
         self.trace(4, 'request: full URL:', full_url)
 
         f = urllib2.urlopen(full_url)
