@@ -6,7 +6,7 @@
 '''
 
 
-from exceptions import BricklinkInvalidParameterException
+from .exceptions import BricklinkInvalidParameterException
 
 
 class Method:
@@ -17,82 +17,72 @@ class Method:
 
 
 class Orders(Method):
-    URL_ORDER_LIST = 'orders'
-    URL_ORDER_DETAILS = 'orders/{order_id}'
-    URL_ORDER_ITEMS = 'orders/{order_id}/items'
-    URL_ORDER_MESSAGES = 'orders/{order_id}/messages'
-    URL_ORDER_FEEDBACK = 'orders/{order_id}/feedback'
-    URL_ORDER_UPDATE = 'orders/{order_id}'
-    URL_ORDER_UPDATE_STATUS = 'order/{order_id}/status'
-
     def getOrders(self, direction='in', status='', filed=False):
-        params = {
-            'direction':    direction,
-            'status':       status,
-            'filed':        filed,
-        }
-        return self.client.get(self.URL_ORDER_LIST, params)
+        return self.client.get('/orders', {'direction': direction, 'status': status, 'filed': filed})
 
     def getOrder(self, order_id):
-        return self.client.get(self.URL_ORDER_DETAILS.format(order_id=order_id))
+        return self.client.get('/orders/%d' % order_id)
 
     def getOrderItems(self, order_id):
-        return self.client.get(self.URL_ORDER_ITEMS.format(order_id=order_id))
+        return self.client.get('/orders/%d/items' % order_id)
 
     def getOrderMessages(self, order_id):
-        return self.client.get(self.URL_ORDER_MESSAGES.format(order_id=order_id))
+        return self.client.get('/orders/%d/messages' % order_id)
 
     def getOrderFeedback(self, order_id):
-        return self.client.get(self.URL_ORDER_FEEDBACK.format(order_id=order_id))
+        return self.client.get('/orders/%d/feedback' % order_id)
 
-    def updateOrder(self, order_id, order_resource):
-        params = order_resource
-        return self.client.get(self.URL_ORDER_UPDATE.format(order_id=order_id), params)
+    def updateOrder(self, order_id, **kwargs):
+        return self.client.put('/orders/%d' % order_id, kwargs)
 
-    def updateOrderStatus(self, order_id, status):
-        ORDER_STATUSES = ('Pending', 'Updated',
-                          'Processing', 'Ready', 'Paid', 'Packed', 'Shipped', 'Received', 'Completed',
-                          'OCR', 'NPB', 'NPX', 'NRS', 'NSS', 'Cancelled',)
+    def updateOrderStatus(self, order_id, order_status):
+        return self.client.put('/orders/%d/status' % order_id, {'field': 'status', 'value': order_status})
 
-        if not status in ORDER_STATUSES:
-            raise BricklinkInvalidParameterException('Invalid status. Should be one of {0}'.format(str(ORDER_STATUSES)),
-                                                     status)
+    def updatePaymentStatus(self, order_id, payment_status):
+        return self.client.put('/orders/%d/status' % order_id, {'field': 'payment_status', 'value': payment_status})
 
-        params = {
-            'field':        'status',
-            'value':        status
-        }
-
-        return self.client.get(self.URL_ORDER_UPDATE.format(order_id=order_id), params)
+    def sendDriveThru(self, order_id, mail_me):
+        return self.client.put('/orders/%d/drive_thru' % order_id, {'mail_me': bool(mail_me)})
 
 
 class Inventory(Method):
-    URL_INVENTORY_LIST = 'inventories'
-    URL_INVENTORY_DETAILS = 'inventories/{inventory_id}'
-    URL_INVENTORY_CREATE = 'inventories'
-    URL_INVENTORY_CREATE_BULK = 'inventories'
-    URL_INVENTORY_UPDATE = 'inventories/{inventory_id}'
-    URL_INVENTORY_DELETE = 'inventories/{inventory_id}'
+    def getInventories(self, item_type='', status='', category_id='', color_id=''):
+        return self.client.get('/inventories', {'item_type': item_type, 'status': status, 'category_id': category_id, 'color_id': color_id})
 
-    def getInventories(self, item_type='', status='', category_id=None, color_id=None)
-        params = {
-            'item_type':    item_type,
-            'status':       status,
-            'category_id':  category_id,
-            'color_id':     color_id,
-        }
-        return self.client.get(self.URL_INVENTORY_LIST, params)
+    def getInventory(self, inventory_id):
+        return self.client.get('/inventories/%d' % inventory_id)
 
+    def createInventory(self, **kwargs):
+        return self.client.post('/inventories', kwargs)
 
-    def getInventory(inventory_id):
-        return self.client.get(self.URL_INVENTORY_DETAILS.format(inventory_id=inventory_id))
+    def createInventories(self, **kwargs):
+        return self.client.post('/inventories', kwargs)
+
+    def updateInventory(self, inventory_id, **kwargs):
+        return self.client.post('/inventories/%d' % inventory_id, kwargs)
+
+    def deleteInventory(self, inventory_id):
+        return self.client.delete('/inventories/%d' % inventory_id)
 
 
 class Catalog(Method):
-    URL_CATALOG_ITEM = 'items/{type}/{no}'
-    URL_CATALOG_SUPERSETS = 'items/{type}/{no}/supersets'
-    URL_CATALOG_SUBSETS = 'items/{type}/{no}/subsets'
-    URL_CATELOG_PRICE_GUIDE = 'items/{type}/{no}/price'
+    def getItem(self, type, no):
+        return self.client.get('/items/%s/%s' % (type, no))
+
+    def getItemImage(self, type, no, color_id):
+        return self.client.get('/items/%s/%s/images/%d' % (type, no, color_id))
+
+    def getSupersets(self, type, no, color_id=''):
+        return self.client.get('/items/%s/%s/supersets' % (type, no), {'color_id': color_id})
+
+    def getSubsets(self, type, no, color_id='', box=False, instruction=False, break_minifigs=False, break_subsets=False):
+        return self.client.get('/items/%s/%s/subsets' % (type, no), {'color_id': color_id, 'box': box, 'instruction': instruction, 'break_minifigs': break_minifigs, 'break_subsets': break_subsets})
+
+    def getPriceGuide(self, type, no, color_id='', guide_type='stock', new_or_used='N', country_code='', region='', currency_code='', vat='N'):
+        return self.client.get('/items/%s/%s/price' % (type, no), {'color_id': color_id, 'guide_type': guide_type, 'new_or_used': new_or_used, 'country_code': country_code, 'region': region, 'currency_code': currency_code, 'vat': vat})
+
+    def getKnownColors(self, type, no):
+        return self.client.get('/items/%s/%s/colors' % (type, no))
 
 
 class Feedback(Method):
